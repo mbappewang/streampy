@@ -1,0 +1,205 @@
+# -*- coding: utf-8 -*-
+#导入模块
+import json
+import time
+import datetime
+import urllib.request
+import random
+import mysql.connector
+#尝试连接mysql
+imdb_sid_list_1=[]
+imdb_id_list_1=[]
+sid_url1_dict={}
+sid_url2_dict={}
+a=0
+progress=0
+movie_info_dict={}
+sid_id_dict={}
+try:
+    mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    passwd='walc94511',
+    database="mydatabase"
+    )
+    mycursor = mydb.cursor()
+except:
+    print("连接msql失败")
+else:
+    #取出所有不重复电视剧的imdb_sid和imdb_id
+    sql = "select imdb_sid,imdb_id from tv_imdb order by imdb_seid limit 50 "
+    mycursor.execute(sql)
+    db_imdb_sid = mycursor.fetchall()
+    #将sid，id元组转换成列表，进而去重
+    for (x,y) in db_imdb_sid:
+        imdb_sid_list_1.append(x)
+        imdb_id_list_1.append(y)
+        sid_id_dict[x]=y
+    #去重sid和id
+    print(sid_id_dict)
+    imdb_sid_list = list(set(imdb_sid_list_1))
+    imdb_id_list = list(set(imdb_id_list_1))
+    #用imdb_sid合并播放url
+    for imdb_sid in imdb_sid_list:
+        a+=1
+        sql = 'select imdb_id,season,episode,play_url_1 from tv_imdb where imdb_sid = "%s" order by imdb_seid'%(imdb_sid)
+        mycursor.execute(sql)
+        db_id_s_e_u = mycursor.fetchall()
+        play_url_1=""
+        play_url_2=""
+        for (id,s,e,u) in db_id_s_e_u:
+            play_url_1 += "#"+e+"$"+u
+            play_url_2 += "#"+e+"$"+"https://www.2embed.to/embed/imdb/tv?id="+"tt"+id[1:20]+"&s="+s+"&e="+e
+        sid_url1_dict[imdb_sid] = play_url_1[1:1000000]
+        sid_url2_dict[imdb_sid] = play_url_2[1:1000000]
+        progress = a/len(imdb_sid_list)*100
+        print("已循环",a,"season",">>>","进度",str(progress)[:8],"%",len(imdb_id_list))
+
+    #openapi查询imdbinfo
+    for i in imdb_id_list:
+        #设置默认值
+        item = page_tout_count = same = 0
+        p = pages = 1
+        vidsrc_vod_list=[]
+        page_timeout_list=[]
+        page_list=[]
+        #请求json函数
+        def get_ombd(url):
+            omdb_info = urllib.request.urlopen(url,timeout=15)
+            omdb_info_json = json.loads(omdb_info.read())
+            return omdb_info_json
+        #查询mysql，获得imdb_id
+        # mycursor.execute("SELECT imdb_id FROM mac_vod")
+        # movie_imdb_tuple = mycursor.fetchall()
+        # movie_imdb_list = []
+        # for (a,) in movie_imdb_tuple:
+        #     movie_imdb_list.append("tt"+a)
+        while imdb_id_list != []:
+            for imdb_id in imdb_id_list:
+                item+=1
+                try:
+                    movie_info_json = get_ombd("http://www.omdbapi.com/?i="+"t"+imdb_id+"&apikey=57e932e4")
+                except:
+                    print("获取info失败")
+                else:
+                    if "Error" in movie_info_json:
+                        print("有error")
+                    else:
+                        print("无error")
+                        #转换unix
+                        if movie_info_json.get("Released","1 Jan 1970") == "N/A":
+                            Unixdate = 0
+                        else:
+                            date=movie_info_json.get("Released","1 Jan 1970")
+                            y=int(date[-4:])
+                            if y >= 1971:
+                                M=date.split(" ")[1]
+                                month_list = ['月份','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                                m=str(month_list.index(M))
+                                d=date[:2]
+                                Date=str(y)+"-"+m+"-"+d+" 00:00:00"
+                                Unixdate=int(time.mktime(time.strptime(Date,'%Y-%m-%d %H:%M:%S')))
+                            else:
+                                Unixdate = 0
+                        vod_name = movie_info_json.get("Title","")[0:255]
+                        vod_year = movie_info_json.get("Year","")[0:10]
+                        vod_duration = movie_info_json.get("Runtime","1970")[0:10]
+                        type_genre = movie_info_json.get("Genre","ungenre").split(",")[0][0:10]
+                        vod_class = movie_info_json.get("Genre","")[0:255]
+                        vod_director = movie_info_json.get("Director","")[0:255]
+                        vod_writer = movie_info_json.get("Writer","")[0:255]
+                        vod_actor = movie_info_json.get("Actors","")[0:255]
+                        vod_blurb = vod_content = movie_info_json.get("Plot","")[0:255]
+                        vod_lang = movie_info_json.get("Language","").split(",")[0][0:10]
+                        vod_area = movie_info_json.get("Country","").split(",")[0][0:20]
+                        vod_pic = movie_info_json.get("Poster","pic")[0:1024]
+                        vod_remarks = "IMDb: " + movie_info_json.get("imdbRating")[0:100]
+                        vod_douban_score = vod_score = movie_info_json.get("imdbRating")
+                        vod_up = movie_info_json.get("imdbVotes","")
+                        type = movie_info_json.get("Type","untype")
+                        vod_pubdate = movie_info_json.get("Released","1 Jan 1970")[0:100]
+                        vod_time = Unixdate
+                        vod_time_add = Unixdate
+                        vod_total = movie_info_json.get("totalSeasons","")
+                        vod_isend = vod_status = 1
+                        vod_hits = vod_hits_day = vod_hits_week = vod_hits_month = vod_score_num = random.random()*100
+                        group_id = vod_lock = vod_level = vod_copyright = vod_points = vod_points_play = vod_points_down = vod_down = 0
+                        vod_play_from_1 = "tpiframe"
+                        vod_play_from_2 = "tpiframecopy"
+                        vod_play_note = "$$$"
+                        vod_play_from = vod_play_from_1+vod_play_note+vod_play_from_2
+                        vod_play_server = "no$$$no"
+                        if movie_info_json["Type"] == "movie":
+                            moviegenredict = {'Romance': 125, 'Adventure': 124, 'Short': 123, 'Comedy': 122, 'Drama': 128, 'Action': 129, 'Crime': 130, 'Western': 131, 'Documentary': 132, 'Horror': 133, 'Fantasy': 134, 'Biography': 135, 'History': 136, 'Animation': 137, 'Mystery': 138, 'Music': 139, 'Other': 140, 'Musical': 141, 'Sci-Fi': 142, 'Family': 143, 'Film-Noir': 144, 'War': 145, 'Thriller': 146, 'Adult': 147, 'Reality-TV': 148, 'Game-Show': 149, 'Talk-Show': 150, 'News': 151, 'Sport': 152} 
+                            type_id = moviegenredict.get(type_genre,"93")
+                            type_id_1 = 93
+                        else:
+                            tvgenredict = {'Romance': 126, 'Sport': 121, 'News': 120, 'Talk-Show': 119, 'Music': 108, 'Other': 109, 'Musical': 110, 'Game-Show': 118, 'Reality-TV': 117, 'Adult': 116, 'Thriller': 115, 'War': 114, 'Film-Noir': 113, 'Family': 112, 'Sci-Fi': 111, 'Mystery': 107, 'Animation': 106, 'History': 105, 'Biography': 104, 'Fantasy': 103, 'Horror': 102, 'Documentary': 101, 'Western': 100, 'Crime': 99, 'Action': 98, 'Adventure': 97, 'Comedy': 95, 'Short': 96, 'Drama': 127}
+                            type_id = tvgenredict.get(type_genre,"94")
+                            type_id_1 = 94
+                        movie_info_list = (
+                            vod_name,
+                            vod_year,
+                            vod_duration,
+                            type_id,
+                            vod_class,
+                            vod_director,
+                            vod_writer,
+                            vod_actor,
+                            vod_blurb,
+                            vod_lang,
+                            vod_area,
+                            vod_pic,
+                            vod_remarks,
+                            vod_douban_score,
+                            vod_score,
+                            vod_up,
+                            type_id_1,
+                            vod_pubdate,
+                            vod_time,
+                            vod_time_add,
+                            vod_total,
+                            vod_isend,
+                            vod_status,
+                            vod_hits,
+                            vod_hits_day,
+                            vod_hits_week,
+                            vod_hits_month,
+                            vod_score_num,
+                            group_id,
+                            vod_lock,
+                            vod_play_from
+                        )
+                        movie_info_dict[imdb_id]=movie_info_list
+                        imdb_id_list.remove(imdb_id)
+                print(item,imdb_id)
+
+    
+    #用sid循环insert
+    a=0
+    movie_info_val=[]
+    movie_info=()
+    for imdb_sid in imdb_sid_list:
+        a+=1
+        del movie_info
+        movie_info=()
+        print(movie_info)
+        imdb_id = sid_id_dict[imdb_sid]
+        season = imdb_sid[len(imdb_id):]
+        play_url_1 = sid_url1_dict[imdb_sid]
+        play_url_2 = sid_url2_dict[imdb_sid]
+        play_url = play_url_1+"$$$"+play_url_2
+        movie_info = (imdb_id,imdb_sid,season,play_url_1,play_url_2,play_url)
+        print(movie_info)
+        movie_info_sql = movie_info+movie_info_dict[imdb_id]
+        print(movie_info_sql)
+        progress = a/len(imdb_sid_list)*100
+        movie_info_val.append(movie_info)
+        print(len(movie_info))
+        print("已匹配",a,"season的info信息",">>>","进度",str(progress)[:8],"%") 
+    sql = "INSERT INTO mac_vod (imdb_id,imdb_sid,season,play_url_1,play_url_2,vod_play_url,vod_name,vod_year,vod_duration,type_id,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type_id_1,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    val = movie_info_val
+    print(movie_info_val)
+    mycursor.executemany(sql, val)
+    mydb.commit()
+    print("打完收工")
