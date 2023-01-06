@@ -169,7 +169,9 @@ else:
                         imdb_id_list.remove(imdb_id)
                 print(item,imdb_id)
 
-    
+    sql = "select imdb_sid from mac_vod "
+    mycursor.execute(sql)
+    imdb_sid_mac_list = mycursor.fetchall()
     #用sid循环insert
     a=0
     for imdb_sid in imdb_sid_list:
@@ -191,19 +193,22 @@ else:
         progress = a/len(imdb_sid_list)*100
         print("已查到",a,"season的基础信息",">>>","进度",str(progress)[:8],"%") 
     a=0
-    for imdb_sid in imdb_sid_list:
-        a+1
-        imdb_id = sid_id_dict[imdb_sid]
-        movie_info1 = movie_info_dict1[imdb_id]
-        movie_info2 = movie_info_dict2[imdb_sid]
-        movie_info = movie_info2+movie_info1
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        sql = "INSERT INTO `mac_vod` (imdb_id,imdb_sid,season,play_url_1,play_url_2,vod_play_url,vod_name,vod_year,vod_duration,type_genre,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        val = movie_info
-        mycursor.execute(sql, val)
-        mydb.commit()
-        progress = a/len(imdb_sid_list)*100
-        print("已入库",a,"season的全部信息",">>>","进度",str(progress)[:8],"%") 
+    while imdb_sid_list != []:
+
+        for imdb_sid in imdb_sid_list:
+            a+1
+            imdb_id = sid_id_dict[imdb_sid]
+            movie_info1 = movie_info_dict1[imdb_id]
+            movie_info2 = movie_info_dict2[imdb_sid]
+            movie_info = movie_info2+movie_info1
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+            sql = "INSERT INTO `mac_vod` (imdb_id,imdb_sid,season,play_url_1,play_url_2,vod_play_url,vod_name,vod_year,vod_duration,type_genre,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+            val = movie_info
+            mycursor.execute(sql, val)
+            mydb.commit()
+            imdb_sid_list.remove(imdb_sid)
+            progress = a/len(imdb_sid_list)*100
+            print("已入库",a,"season的全部信息",">>>","进度",str(progress)[:8],"%") 
     print("打完收工")
 
 
