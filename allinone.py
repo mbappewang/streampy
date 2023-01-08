@@ -6,9 +6,9 @@ import time
 import datetime
 import urllib.request
 import mysql.connector
-# import eventlet #导入eventlet这个模块
-# eventlet.monkey_patch()#必须加这条代码
-# starttime = datetime.datetime.now()
+import eventlet #导入eventlet这个模块
+eventlet.monkey_patch()#必须加这条代码
+starttime = datetime.datetime.now()
 #连接数据库
 try:
     mydb = mysql.connector.connect(
@@ -82,7 +82,6 @@ else:
             vidsrc_dict = get_vidsrc("https://vidsrc.me/episodes/latest/page-" + str(x) + ".json")
         except:
             page_tout_count += 1
-            # print("TV爬取进程运行状态>>>","进度：",x/(pages+1)*100,"%","库内集数：",len(imdb_seid_list),"新发现集数：",dif_imdb_seid,"超时次数：",page_tout_count)
         else:
             if len(vidsrc_dict["result"]) != 0:
                 no_data_page = 0
@@ -96,7 +95,6 @@ else:
                     play_url_2 = "Episode"+str(episode)+"$"+"https://www.2embed.to/embed/imdb/tv?id="+"t"+imdb_id+"&s="+str(season)+"&e="+str(episode)
                     if imdb_seid in imdb_seid_list:
                         same_imdb_seid += 1
-                        # print("TV爬取进程运行状态>>>","进度：",x/(pages+1)*100,"%","库内集数：",len(imdb_seid_list),"新发现集数：",dif_imdb_seid,"超时次数：",page_tout_count)
                     else:
                         same_imdb_seid = 0
                         dif_imdb_seid += 1
@@ -223,7 +221,12 @@ else:
     vidsrc_result=[]
     same_imdb_seid = 0
     no_data_page = 0
-    for x in range(1,pages+1):
+    del mac_vod
+    del imdb_record
+    dif_imdb_seid = 0
+    mac_vod = []
+    imdb_record=[]
+    for x in range(1,2):
         #避免程序超时，用try、except
         try:
             #请求函数获得接口页信息
@@ -248,7 +251,69 @@ else:
                     else:
                         same_imdb_seid = 0
                         dif_imdb_seid += 1
-                        vidsrc_result.append((imdb_id,imdb_sid,imdb_seid,season,episode,play_url_1,play_url_2))
+                        #请求OpenAPI拿到imdb信息
+                        try:
+                            ombd_info = get_ombd("http://www.omdbapi.com/?i="+y["imdb_id"]+"&apikey=57e932e4")
+                        except:
+                            pass
+                        else:
+                            #转换unix
+                            if ombd_info.get("Released","1 Jan 1970") == "N/A":
+                                Unixdate = 0
+                            else:
+                                date=ombd_info.get("Released","1 Jan 1970")
+                                y=int(date[-4:])
+                                if y >= 1971:
+                                    M=date.split(" ")[1]
+                                    month_list = ['月份','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                                    m=str(month_list.index(M))
+                                    d=date[:2]
+                                    Date=str(y)+"-"+m+"-"+d+" 00:00:00"
+                                    Unixdate=int(time.mktime(time.strptime(Date,'%Y-%m-%d %H:%M:%S')))
+                                else:
+                                    Unixdate = 0
+                            if imdb_sid in imdb_sid_list:
+                                print("更新记录")
+                                play_url_1_before = (sid_play_dict[imdb_sid])[0]
+                                play_url_2_before = (sid_play_dict[imdb_sid])[1]
+                                play_url_1= play_url_1+"#"+play_url_1_before
+                                play_url_2= play_url_2+"#"+play_url_2_before
+                                sid_play_dict[imdb_sid] = [play_url_1,play_url_2]
+                                same_sid_url_dict[imdb_sid] = [play_url_1,play_url_2]
+                            else:
+                                print("添加新的记录")
+                                vod_name = ombd_info.get("Title","")[0:255]
+                                vod_year = ombd_info.get("Year","")[0:10]
+                                vod_duration = ombd_info.get("Runtime","1970")[0:10]
+                                type_genre = ombd_info.get("Genre","ungenre").split(",")[0][0:10]
+                                vod_class = ombd_info.get("Genre","")[0:255]
+                                vod_director = ombd_info.get("Director","")[0:255]
+                                vod_writer = ombd_info.get("Writer","")[0:255]
+                                vod_actor = ombd_info.get("Actors","")[0:255]
+                                vod_blurb = vod_content = ombd_info.get("Plot","")[0:255]
+                                vod_lang = ombd_info.get("Language","").split(",")[0][0:10]
+                                vod_area = ombd_info.get("Country","").split(",")[0][0:20]
+                                vod_pic = ombd_info.get("Poster","pic")[0:1024]
+                                vod_remarks = "IMDb: " + ombd_info.get("imdbRating")[0:100]
+                                vod_douban_score = vod_score = ombd_info.get("imdbRating")
+                                vod_up = ombd_info.get("imdbVotes","")
+                                type = ombd_info.get("Type","untype")
+                                vod_pubdate = ombd_info.get("Released","1 Jan 1970")[0:100]
+                                vod_time = Unixdate
+                                vod_time_add = Unixdate
+                                vod_total = ombd_info.get("totalSeasons","")
+                                vod_isend = vod_status = 1
+                                vod_hits = vod_hits_day = vod_hits_week = vod_hits_month = vod_score_num = random.random()*100
+                                group_id = vod_lock = vod_level = vod_copyright = vod_points = vod_points_play = vod_points_down = vod_down = 0
+                                vod_play_from_1 = "tpiframe"
+                                vod_play_from_2 = "tpiframecopy"
+                                vod_play_note = "$$$"
+                                vod_play_from = vod_play_from_1+vod_play_note+vod_play_from_2
+                                vod_play_server = "no$$$no"
+                                mac_vod.append((imdb_id,imdb_sid,imdb_seid,season,play_url_1,play_url_2,vod_name,vod_year,vod_duration,type_genre,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from,vod_play_server))
+                                sid_play_dict[imdb_sid] = [play_url_1,play_url_2]
+                                imdb_sid_list.append(imdb_sid)
+                        imdb_record.append((imdb_id,imdb_sid,imdb_seid,season,episode))
                         # print("TV爬取进程运行状态>>>","进度：",x/(pages+1)*100,"%","库内集数：",len(imdb_seid_list),"新发现集数：",dif_imdb_seid,"超时次数：",page_tout_count)
             else:
                 no_data_page += 1
@@ -260,8 +325,12 @@ else:
             break
         endtime = datetime.datetime.now()
         print("Movie爬取进程运行状态>>>","%4d" % x,"页已抓取完毕","进度：","%4.2f" % (x/(pages+1)*100),"%","库内TV+MOVIE集数：",len(imdb_seid_list),"新发现TV+MOVIE集数：",dif_imdb_seid,"超时次数：",page_tout_count,"已运行时间：",endtime - starttime)
-    sql = "INSERT INTO tv_imdb (imdb_id,imdb_sid,imdb_seid,season,episode,play_url_1,play_url_2) VALUES (%s , %s, %s, %s, %s, %s, %s)"
-    val = vidsrc_result
+    sql = "INSERT INTO imdb (imdb_id,imdb_sid,imdb_seid,season,episode) VALUES (%s,%s,%s,%s,%s)"
+    val = imdb_record
+    mycursor.executemany(sql, val)
+    mydb.commit()
+    sql = "INSERT INTO mac_vod (imdb_id,imdb_sid,imdb_seid,season,play_url_1,play_url_2,vod_name,vod_year,vod_duration,type_genre,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from,vod_play_server) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+    val = mac_vod
     mycursor.executemany(sql, val)
     mydb.commit()
 
