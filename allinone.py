@@ -60,10 +60,10 @@ else:
         vidsrc_dict = get_vidsrc("https://vidsrc.me/episodes/latest/page-1.json")
         vidsrc_result = vidsrc_dict["result"]
     except:
-        pages = 1
+        pages = 6000
         print("妹读到页数了×","设定页面默认值为",pages,"页")
     else:
-        pages = 1
+        pages = 6000
         print("读到页数了✅","共",pages,"页")
     #生成pagelist
     page_tout_count = 0
@@ -75,6 +75,7 @@ else:
     sid_url = []
     same_sid_url_dict = {}
     imdb_record=[]
+    tv_item=0
     for x in range(1,pages+1):
         #避免程序超时，用try、except
         try:
@@ -98,6 +99,7 @@ else:
                     else:
                         same_imdb_seid = 0
                         dif_imdb_seid += 1
+                        tv_item += 1
                         #请求OpenAPI拿到imdb信息
                         try:
                             ombd_info = get_ombd("http://www.omdbapi.com/?i="+y["imdb_id"]+"&apikey=57e932e4")
@@ -120,7 +122,7 @@ else:
                                 else:
                                     Unixdate = 0
                             if imdb_sid in imdb_sid_list:
-                                print("更新记录")
+                                print("更新season内的episode","目前已发现：",tv_item,"集电视剧")
                                 play_url_1_before = (sid_play_dict[imdb_sid])[0]
                                 play_url_2_before = (sid_play_dict[imdb_sid])[1]
                                 play_url_1= play_url_1+"#"+play_url_1_before
@@ -128,7 +130,7 @@ else:
                                 sid_play_dict[imdb_sid] = [play_url_1,play_url_2]
                                 same_sid_url_dict[imdb_sid] = [play_url_1,play_url_2]
                             else:
-                                print("添加新的记录")
+                                print("添加新season","目前已发现：",tv_item,"集电视剧")
                                 vod_name = ombd_info.get("Title","")[0:255]
                                 vod_year = ombd_info.get("Year","")[0:10]
                                 vod_duration = ombd_info.get("Runtime","1970")[0:10]
@@ -141,8 +143,8 @@ else:
                                 vod_lang = ombd_info.get("Language","").split(",")[0][0:10]
                                 vod_area = ombd_info.get("Country","").split(",")[0][0:20]
                                 vod_pic = ombd_info.get("Poster","pic")[0:1024]
-                                vod_remarks = "IMDb: " + ombd_info.get("imdbRating")[0:100]
-                                vod_douban_score = vod_score = ombd_info.get("imdbRating")
+                                vod_remarks = "IMDb: " + ombd_info.get("imdbRating","")[0:100]
+                                vod_douban_score = vod_score = ombd_info.get("imdbRating","")
                                 vod_up = ombd_info.get("imdbVotes","")
                                 type = ombd_info.get("Type","untype")
                                 vod_pubdate = ombd_info.get("Released","1 Jan 1970")[0:100]
@@ -226,7 +228,8 @@ else:
     dif_imdb_seid = 0
     mac_vod = []
     imdb_record=[]
-    for x in range(1,2):
+    movie_item = 0
+    for x in range(1,pages+1):
         #避免程序超时，用try、except
         try:
             #请求函数获得接口页信息
@@ -251,6 +254,7 @@ else:
                     else:
                         same_imdb_seid = 0
                         dif_imdb_seid += 1
+                        movie_item += 1
                         #请求OpenAPI拿到imdb信息
                         try:
                             ombd_info = get_ombd("http://www.omdbapi.com/?i="+y["imdb_id"]+"&apikey=57e932e4")
@@ -273,7 +277,7 @@ else:
                                 else:
                                     Unixdate = 0
                             if imdb_sid in imdb_sid_list:
-                                print("更新记录")
+                                print("更新了movie","目前已发现：",movie_item,"部电影")
                                 play_url_1_before = (sid_play_dict[imdb_sid])[0]
                                 play_url_2_before = (sid_play_dict[imdb_sid])[1]
                                 play_url_1= play_url_1+"#"+play_url_1_before
@@ -281,7 +285,7 @@ else:
                                 sid_play_dict[imdb_sid] = [play_url_1,play_url_2]
                                 same_sid_url_dict[imdb_sid] = [play_url_1,play_url_2]
                             else:
-                                print("添加新的记录")
+                                print("添加新movie","目前已发现：",movie_item,"部电影")
                                 vod_name = ombd_info.get("Title","")[0:255]
                                 vod_year = ombd_info.get("Year","")[0:10]
                                 vod_duration = ombd_info.get("Runtime","1970")[0:10]
@@ -294,8 +298,8 @@ else:
                                 vod_lang = ombd_info.get("Language","").split(",")[0][0:10]
                                 vod_area = ombd_info.get("Country","").split(",")[0][0:20]
                                 vod_pic = ombd_info.get("Poster","pic")[0:1024]
-                                vod_remarks = "IMDb: " + ombd_info.get("imdbRating")[0:100]
-                                vod_douban_score = vod_score = ombd_info.get("imdbRating")
+                                vod_remarks = "IMDb: " + ombd_info.get("imdbRating","")[0:100]
+                                vod_douban_score = vod_score = ombd_info.get("imdbRating","")
                                 vod_up = ombd_info.get("imdbVotes","")
                                 type = ombd_info.get("Type","untype")
                                 vod_pubdate = ombd_info.get("Released","1 Jan 1970")[0:100]
