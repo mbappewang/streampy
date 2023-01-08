@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-#å¯¼å…¥æ¨¡å—
+#µ¼ÈëÄ£¿é
 import json
 import time
 import datetime
 import urllib.request
 import random
 import mysql.connector
-#å°è¯•è¿žæŽ¥mysql
+#³¢ÊÔÁ¬½Ómysql
 imdb_sid_list_1=[]
 imdb_id_list_1=[]
 sid_url1_dict={}
@@ -25,22 +25,22 @@ try:
     )
     mycursor = mydb.cursor()
 except:
-    print("è¿žæŽ¥msqlå¤±è´¥")
+    print("Á¬½ÓmsqlÊ§°Ü")
 else:
-    #å–å‡ºæ‰€æœ‰ä¸é‡å¤ç”µè§†å‰§çš„imdb_sidå’Œimdb_id
+    #È¡³öËùÓÐ²»ÖØ¸´µçÊÓ¾çµÄimdb_sidºÍimdb_id
     sql = "select imdb_sid,imdb_id from tv_imdb order by imdb_seid limit 50 "
     mycursor.execute(sql)
     db_imdb_sid = mycursor.fetchall()
-    #å°†sidï¼Œidå…ƒç»„è½¬æ¢æˆåˆ—è¡¨ï¼Œè¿›è€ŒåŽ»é‡
+    #½«sid£¬idÔª×é×ª»»³ÉÁÐ±í£¬½ø¶øÈ¥ÖØ
     for (x,y) in db_imdb_sid:
         imdb_sid_list_1.append(x)
         imdb_id_list_1.append(y)
         sid_id_dict[x]=y
-    #åŽ»é‡sidå’Œid
+    #È¥ÖØsidºÍid
     print(sid_id_dict)
     imdb_sid_list = list(set(imdb_sid_list_1))
     imdb_id_list = list(set(imdb_id_list_1))
-    #ç”¨imdb_sidåˆå¹¶æ’­æ”¾url
+    #ÓÃimdb_sidºÏ²¢²¥·Åurl
     for imdb_sid in imdb_sid_list:
         a+=1
         sql = 'select imdb_id,season,episode,play_url_1 from tv_imdb where imdb_sid = "%s" order by imdb_seid'%(imdb_sid)
@@ -54,17 +54,17 @@ else:
         sid_url1_dict[imdb_sid] = play_url_1[1:1000000]
         sid_url2_dict[imdb_sid] = play_url_2[1:1000000]
         progress = a/len(imdb_sid_list)*100
-        print("å·²å¾ªçŽ¯",a,"season",">>>","è¿›åº¦",str(progress)[:8],"%",len(imdb_id_list))
+        print("ÒÑÑ­»·",a,"season",">>>","½ø¶È",str(progress)[:8],"%",len(imdb_id_list))
 
-    #openapiæŸ¥è¯¢imdbinfo
+    #openapi²éÑ¯imdbinfo
     for i in imdb_id_list:
-        #è®¾ç½®é»˜è®¤å€¼
+        #ÉèÖÃÄ¬ÈÏÖµ
         item = page_tout_count = same = 0
         p = pages = 1
         vidsrc_vod_list=[]
         page_timeout_list=[]
         page_list=[]
-        #è¯·æ±‚jsonå‡½æ•°
+        #ÇëÇójsonº¯Êý
         def get_ombd(url):
             omdb_info = urllib.request.urlopen(url,timeout=15)
             omdb_info_json = json.loads(omdb_info.read())
@@ -75,13 +75,13 @@ else:
                 try:
                     movie_info_json = get_ombd("http://www.omdbapi.com/?i="+"t"+imdb_id+"&apikey=57e932e4")
                 except:
-                    print("èŽ·å–infoå¤±è´¥")
+                    print("»ñÈ¡infoÊ§°Ü")
                 else:
                     if "Error" in movie_info_json:
-                        print("æœ‰error")
+                        print("ÓÐerror")
                     else:
-                        print("æ— error")
-                        #è½¬æ¢unix
+                        print("ÎÞerror")
+                        #×ª»»unix
                         if movie_info_json.get("Released","1 Jan 1970") == "N/A":
                             Unixdate = 0
                         else:
@@ -89,7 +89,7 @@ else:
                             y=int(date[-4:])
                             if y >= 1971:
                                 M=date.split(" ")[1]
-                                month_list = ['æœˆä»½','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                                month_list = ['ÔÂ·Ý','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
                                 m=str(month_list.index(M))
                                 d=date[:2]
                                 Date=str(y)+"-"+m+"-"+d+" 00:00:00"
@@ -172,7 +172,7 @@ else:
     sql = "select imdb_sid from mac_vod "
     mycursor.execute(sql)
     imdb_sid_mac_list = mycursor.fetchall()
-    #ç”¨sidå¾ªçŽ¯insert
+    #ÓÃsidÑ­»·insert
     a=0
     for imdb_sid in imdb_sid_list:
         a+=1
@@ -191,7 +191,7 @@ else:
         ]
         movie_info_dict2[imdb_sid]=movie_info_list2
         progress = a/len(imdb_sid_list)*100
-        print("å·²æŸ¥åˆ°",a,"seasonçš„åŸºç¡€ä¿¡æ¯",">>>","è¿›åº¦",str(progress)[:8],"%") 
+        print("ÒÑ²éµ½",a,"seasonµÄ»ù´¡ÐÅÏ¢",">>>","½ø¶È",str(progress)[:8],"%") 
     a=0
     while imdb_sid_list != []:
 
@@ -208,8 +208,8 @@ else:
             mydb.commit()
             imdb_sid_list.remove(imdb_sid)
             progress = a/len(imdb_sid_list)*100
-            print("å·²å…¥åº“",a,"seasonçš„å…¨éƒ¨ä¿¡æ¯",">>>","è¿›åº¦",str(progress)[:8],"%") 
-    print("æ‰“å®Œæ”¶å·¥")
+            print("ÒÑÈë¿â",a,"seasonµÄÈ«²¿ÐÅÏ¢",">>>","½ø¶È",str(progress)[:8],"%") 
+    print("´òÍêÊÕ¹¤")
 
 
     # sql = "INSERT INTO mac_vod (vod_name,vod_year,vod_duration,type_id,vod_class,vod_director,vod_writer,vod_actor,vod_blurb,vod_lang,vod_area,vod_pic,vod_remarks,vod_douban_score,vod_score,vod_up,type_id_1,vod_pubdate,vod_time,vod_time_add,vod_total,vod_isend,vod_status,vod_hits,vod_hits_day,vod_hits_week,vod_hits_month,vod_score_num,group_id,vod_lock,vod_play_from) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
@@ -217,4 +217,4 @@ else:
     # val = movie_info_list
     # mycursor.executemany(sql, val)
     # mydb.commit()
-    # print("æ‰“å®Œæ”¶å·¥")
+    # print("´òÍêÊÕ¹¤")
