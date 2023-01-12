@@ -109,6 +109,8 @@ else:
                             #转换unix
                             if ombd_info.get("Released","1 Jan 1970") == "N/A":
                                 Unixdate = 0
+                            elif ombd_info.get("Released","1 Jan 1970") == "":
+                                Unixdate = 0
                             else:
                                 date=ombd_info.get("Released","1 Jan 1970")
                                 y=int(date[-4:])
@@ -132,7 +134,7 @@ else:
                             else:
                                 print("添加新season","目前已发现：",tv_item,"集电视剧")
                                 vod_name = ombd_info.get("Title","")[0:255]
-                                vod_year = ombd_info.get("Year","")[0:10]
+                                vod_year = ombd_info.get("Year","")[-4:]
                                 vod_duration = ombd_info.get("Runtime","1970")[0:10]
                                 type_genre = ombd_info.get("Genre","ungenre").split(",")[0][0:10]
                                 vod_class = ombd_info.get("Genre","")[0:255]
@@ -169,7 +171,7 @@ else:
         if no_data_page == 10:
             print("TV已发现连续10个页面为空，已停止爬取")
             break
-        if same_imdb_seid == 10000:
+        if same_imdb_seid == 100:
             print("TV已发现连续10000条记录为空，已停止爬取")
             break
         endtime = datetime.datetime.now()
@@ -287,7 +289,7 @@ else:
                             else:
                                 print("添加新movie","目前已发现：",movie_item,"部电影")
                                 vod_name = ombd_info.get("Title","")[0:255]
-                                vod_year = ombd_info.get("Year","")[0:10]
+                                vod_year = ombd_info.get("Year","")[-4:]
                                 vod_duration = ombd_info.get("Runtime","1970")[0:10]
                                 type_genre = ombd_info.get("Genre","ungenre").split(",")[0][0:10]
                                 vod_class = ombd_info.get("Genre","")[0:255]
@@ -324,7 +326,7 @@ else:
         if no_data_page == 10:
             print("Movie已发现连续10个页面为空，已停止爬取")
             break
-        if same_imdb_seid == 10000:
+        if same_imdb_seid == 100:
             print("Movie已发现连续10000条记录为空，已停止爬取")
             break
         endtime = datetime.datetime.now()
