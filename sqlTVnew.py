@@ -16,10 +16,10 @@ def get_ombd(url):
     return omdb_info_json
 try:
     mydb = mysql.connector.connect(
-    host="45.63.84.141",
-    user="stream9ja",
-    passwd='krYzjJdXBPBJr34X',
-    database="stream9ja"
+    host="localhost",
+    user="root",
+    passwd='walc94511',
+    database="mac_vod"
     )
     mycursor = mydb.cursor()
 except:
@@ -27,19 +27,21 @@ except:
 else:
     print("连接数据库成功✅")
 #根据主表记录，清掉副表所有的不存在于主表的sid
-    sql = "select id,vod_name,play_url_1 from imdb_8 where imdb_sid is null"
+    sql = "select id,vod_name,play_url_1,season,episode from imdb_8t where imdb_sid is null"
     mycursor.execute(sql)
     imdb_8db = mycursor.fetchall()
     a=0
     basic_info=[]
-    for (x,y,z) in imdb_8db:
-        imdb_id = "m"+x[2:20]
+    for (x,y,z,b,c) in imdb_8db:
+        imdb_id = "t"+x[2:20]
         vod_name = y[:-4]
-        play_url_1 = "HD$"+z
-        imdb_sid = imdb_id+"0"
-        imdb_seid = imdb_sid+"0"
-        basic_info = [vod_name,play_url_1,imdb_sid,imdb_seid,x]
-        sql = "update imdb_8 set vod_name = %s,play_url_1 = %s,imdb_sid = %s,imdb_seid = %s where id = %s"
+        season = b
+        episode = c
+        play_url_1 = "Episode"+str(c)+"$"+z
+        imdb_sid = imdb_id+str(b)
+        imdb_seid = imdb_sid+str(c)
+        basic_info = [vod_name,play_url_1,imdb_sid,imdb_seid,x,b,c]
+        sql = "update imdb_8t set vod_name = %s,play_url_1 = %s,imdb_sid = %s,imdb_seid = %s where id = %s and season =%s and episode =%s"
         val= basic_info
         mycursor.execute(sql, val)
         mydb.commit()
@@ -50,7 +52,7 @@ else:
     mycursor.execute(sql)
     imdb_macvod = mycursor.fetchall()
     a=0
-    sql = "select imdb_sid,vod_name,play_url_1,id from imdb_8 where imdb_sid is not null"
+    sql = "SELECT distinct imdb_sid,group_concat(distinct vod_name),group_concat(distinct id),group_concat(play_url_1 order by episode desc separator '#') FROM imdb_8t where imdb_sid is not null group by imdb_sid"
     mycursor.execute(sql)
     imdb_8db = mycursor.fetchall()
     for (x,y,z,b) in imdb_8db:
@@ -60,10 +62,10 @@ else:
             print("已有",a)
         else:
             vod_name = y
-            vod_play_url = z
-            play_url_1 = z
-            type_id_1=93
-            type_id=140
+            vod_play_url = b
+            play_url_1 = b
+            type_id_1=94
+            type_id=109
             vod_status=1
             vod_isend=1
             group_id = vod_lock = vod_level = vod_copyright = vod_points = vod_points_play = vod_points_down = vod_down = 0
@@ -71,7 +73,7 @@ else:
             vod_play_from = "tpiframe"
             vod_play_server = "no$$$no"
             try:
-                ombd_info = get_ombd("http://www.omdbapi.com/?i="+b+"&apikey=57e932e4")
+                ombd_info = get_ombd("http://www.omdbapi.com/?i="+z+"&apikey=57e932e4")
             except:
                 pass
             else:
@@ -92,8 +94,13 @@ else:
                         Unixdate=int(time.mktime(time.strptime(Date,'%Y-%m-%d %H:%M:%S')))
                     else:
                         Unixdate = 0
-                vod_year = ombd_info.get("Year","")[-4:]
-                vod_duration = ombd_info.get("Runtime","1970")[0:10]
+                if ombd_info.get("Released","1 Jan 1970") == "N/A":
+                    pass
+                elif ombd_info.get("Released","1 Jan 1970") == "":
+                    pass
+                else:
+                    vod_year = ombd_info.get("Released","1 Jan 1970")[-4:]
+                vod_duration = ombd_info.get("Runtime","0")[0:10]
                 type_genre = ombd_info.get("Genre","ungenre").split(",")[0][0:15]
                 vod_class = ombd_info.get("Genre","")[0:255]
                 vod_director = ombd_info.get("Director","")[0:255]
@@ -150,23 +157,6 @@ else:
         mydb.commit()
         a+=1
         print(a,"分类中")
-
-    sql = "select imdb_sid,vod_pubdate from mac_vod"
-    mycursor.execute(sql)
-    imdb_8db = mycursor.fetchall()
-    a=0
-    for (x,y) in imdb_8db:
-        if y == "N/A":
-            pass
-        else:
-            vod_year=y[-4:]
-        basic_info = [vod_year,x]
-        sql = "update mac_vod set vod_year = %s where imdb_sid = %s"
-        val= basic_info
-        mycursor.execute(sql, val)
-        mydb.commit()
-        a+=1
-        print(a,vod_year,"年份重写中")
 
 
 
