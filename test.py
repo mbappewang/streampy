@@ -26,19 +26,11 @@ except:
     print("连接数据库失败×")
 else:
     print("连接数据库成功✅")
-    sql = "select imdb_sid,vod_pubdate from mac_vod"
+    sql = "select distinct type_id,type_genre from mac_vod where type_id_1 =94 and type_id != 109"
     mycursor.execute(sql)
     imdb_8db = mycursor.fetchall()
     a=0
+    movie_genre_dict = {}
     for (x,y) in imdb_8db:
-        if y == "N/A":
-            pass
-        else:
-            vod_year=y[-4:]
-        basic_info = [vod_year,x]
-        sql = "update mac_vod set vod_year = %s where imdb_sid = %s"
-        val= basic_info
-        mycursor.execute(sql, val)
-        mydb.commit()
-        a+=1
-        print(a,vod_year,"<<<<<<<<<")
+        movie_genre_dict[y]=x
+    print(movie_genre_dict)
