@@ -35,13 +35,13 @@ else:
         vidsrc_dict = get_vidsrc("https://vidsrc.me/movies/latest/page-1.json")
         vidsrc_result = vidsrc_dict["result"]
     except:
-        pages = 20
+        pages = 50
         print("妹读到页数了×","设定页面默认值为",pages,"页")
     else:
         sql = "select id from imdb_8 where imdb_sid is not null"
         mycursor.execute(sql)
         imdb_8db = mycursor.fetchall()
-        pages = 20
+        pages = 50
         print("读到页数了✅","共",pages,"页")
         #生成pagelist
         page_tout_count = 0
@@ -66,8 +66,6 @@ else:
                         if (id,) in imdb_8db:
                             same_imdb_id+=1
                             a+=1
-                            print("已有",a,same_imdb_id,id)
-                            break
                         else:
                             same_imdb_id=0
                             vod_name=y["title"]
@@ -110,7 +108,6 @@ else:
             imdb_sid = x
             if (imdb_sid,) in imdb_macvod:
                 a+=1
-                print("已有",a)
             else:
                 vod_name = y
                 vod_play_url = z

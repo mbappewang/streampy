@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-#å¯¼å…¥æ¨¡å—
+#µ¼ÈëÄ£¿é
 import random
 import json
 import time
 import datetime
 import urllib.request
 import mysql.connector
-# import eventlet #å¯¼å…¥eventletè¿™ä¸ªæ¨¡å—
-# eventlet.monkey_patch()#å¿…é¡»åŠ è¿™æ¡ä»£ç 
+# import eventlet #µ¼ÈëeventletÕâ¸öÄ£¿é
+# eventlet.monkey_patch()#±ØĞë¼ÓÕâÌõ´úÂë
 # starttime = datetime.datetime.now()
-#è¿æ¥æ•°æ®åº“
+#Á¬½ÓÊı¾İ¿â
 def get_ombd(url):
     omdb_info = urllib.request.urlopen(url,timeout=15)
     omdb_info_json = json.loads(omdb_info.read())
@@ -29,35 +29,35 @@ try:
     )
     mycursor = mydb.cursor()
 except:
-    print("è¿æ¥æ•°æ®åº“å¤±è´¥Ã—")
+    print("Á¬½ÓÊı¾İ¿âÊ§°Ü¡Á")
 else:
-    print("è¿æ¥æ•°æ®åº“æˆåŠŸâœ…")
+    print("Á¬½ÓÊı¾İ¿â³É¹¦?")
     try:
         vidsrc_dict = get_vidsrc("https://vidsrc.me/episodes/latest/page-1.json")
         vidsrc_result = vidsrc_dict["result"]
     except:
         pages = 20
-        print("å¦¹è¯»åˆ°é¡µæ•°äº†Ã—","è®¾å®šé¡µé¢é»˜è®¤å€¼ä¸º",pages,"é¡µ")
+        print("ÃÃ¶Áµ½Ò³ÊıÁË¡Á","Éè¶¨Ò³ÃæÄ¬ÈÏÖµÎª",pages,"Ò³")
     else:
         sql = "select id from imdb_8 where imdb_sid is not null"
         mycursor.execute(sql)
         imdb_8db = mycursor.fetchall()
         pages = 20
-        print("è¯»åˆ°é¡µæ•°äº†âœ…","å…±",pages,"é¡µ")
-        #ç”Ÿæˆpagelist
+        print("¶Áµ½Ò³ÊıÁË?","¹²",pages,"Ò³")
+        #Éú³Épagelist
         page_tout_count = 0
         same_imdb_id = 0
         no_data_page = 0
         dif_imdb_id = 0
         a=0
         for x in range(1,pages+1):
-            #é¿å…ç¨‹åºè¶…æ—¶ï¼Œç”¨tryã€except
+            #±ÜÃâ³ÌĞò³¬Ê±£¬ÓÃtry¡¢except
             try:
-                #è¯·æ±‚å‡½æ•°è·å¾—æ¥å£é¡µä¿¡æ¯
+                #ÇëÇóº¯Êı»ñµÃ½Ó¿ÚÒ³ĞÅÏ¢
                 vidsrc_dict = get_vidsrc("https://vidsrc.me/episodes/latest/page-" + str(x) + ".json")
             except:
                 page_tout_count += 1
-                # print("TVçˆ¬å–è¿›ç¨‹è¿è¡ŒçŠ¶æ€>>>","è¿›åº¦ï¼š",x/(pages+1)*100,"%","åº“å†…é›†æ•°ï¼š",len(imdb_seid_list),"æ–°å‘ç°é›†æ•°ï¼š",dif_imdb_seid,"è¶…æ—¶æ¬¡æ•°ï¼š",page_tout_count)
+                # print("TVÅÀÈ¡½ø³ÌÔËĞĞ×´Ì¬>>>","½ø¶È£º",x/(pages+1)*100,"%","¿âÄÚ¼¯Êı£º",len(imdb_seid_list),"ĞÂ·¢ÏÖ¼¯Êı£º",dif_imdb_seid,"³¬Ê±´ÎÊı£º",page_tout_count)
             else:
                 if len(vidsrc_dict["result"]) != 0:
                     no_data_page = 0
@@ -78,8 +78,8 @@ else:
                             mycursor.execute(sql, val)
                             mydb.commit()
                             a+=1
-                            print("æ–°çš„",a,same_imdb_id,id)
-    #æ ¹æ®ä¸»è¡¨è®°å½•ï¼Œæ¸…æ‰å‰¯è¡¨æ‰€æœ‰çš„ä¸å­˜åœ¨äºä¸»è¡¨çš„sid
+                            print("ĞÂµÄ",a,same_imdb_id,id)
+    #¸ù¾İÖ÷±í¼ÇÂ¼£¬Çåµô¸±±íËùÓĞµÄ²»´æÔÚÓÚÖ÷±íµÄsid
         sql = "select id,vod_name,play_url_1,season,episode from imdb_8t where imdb_sid is null"
         mycursor.execute(sql)
         imdb_8db = mycursor.fetchall()
@@ -117,7 +117,7 @@ else:
                 mycursor.execute(sql, val)
                 mydb.commit()
                 a+=1
-                print("å·²æœ‰",x,a)
+                print("ÒÑÓĞ",x,a)
             else:
                 vod_name = y
                 vod_play_url = b
@@ -135,7 +135,7 @@ else:
                 except:
                     pass
                 else:
-                    #è½¬æ¢unix
+                    #×ª»»unix
                     if ombd_info.get("Released","1 Jan 1970") == "N/A":
                         Unixdate = 0
                     elif ombd_info.get("Released","1 Jan 1970") == "N":
@@ -145,7 +145,7 @@ else:
                         y=int(date[-4:])
                         if y >= 1971:
                             M=date.split(" ")[1]
-                            month_list = ['æœˆä»½','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+                            month_list = ['ÔÂ·İ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
                             m=str(month_list.index(M))
                             d=date[:2]
                             Date=str(y)+"-"+m+"-"+d+" 00:00:00"
@@ -184,7 +184,7 @@ else:
                     mycursor.execute(sql, val)
                     mydb.commit()
                     a+=1
-                    print(a,"è®°å½•æ·»åŠ ä¸­")
+                    print(a,"¼ÇÂ¼Ìí¼ÓÖĞ")
 
         sql = "select imdb_sid,vod_name from mac_vod where vod_letter is null"
         mycursor.execute(sql)
@@ -200,7 +200,7 @@ else:
             mycursor.execute(sql, val)
             mydb.commit()
             a+=1
-            print(a,"é¦–å­—æ¯å†™å…¥ä¸­")
+            print(a,"Ê××ÖÄ¸Ğ´ÈëÖĞ")
         sql = "select imdb_sid,type_genre from mac_vod where type_id_1 =94 and type_id = 109"
         mycursor.execute(sql)
         imdb_8db = mycursor.fetchall()
@@ -214,18 +214,18 @@ else:
             mycursor.execute(sql, val)
             mydb.commit()
             a+=1
-            print(a,"åˆ†ç±»ä¸­")
+            print(a,"·ÖÀàÖĞ")
 
 
 
 
 
-#è®¿é—®vidsrcï¼Œæ·»åŠ è¿›å‰¯è¡¨ï¼Œè·å¾—æ–°sidå’Œæ—§sid
+#·ÃÎÊvidsrc£¬Ìí¼Ó½ø¸±±í£¬»ñµÃĞÂsidºÍ¾Ésid
 
-#æ–°çš„sidè¿›è¡Œsqlè¯­å¥åˆå¹¶insertåˆ°ä¸»è¡¨
+#ĞÂµÄsid½øĞĞsqlÓï¾äºÏ²¢insertµ½Ö÷±í
 
-#é’ˆå¯¹æ–°çš„sidï¼Œå»é™¤å…¶ä¸­çš„idï¼Œè¯·æ±‚omdbè·å¾—ä¿¡æ¯update
+#Õë¶ÔĞÂµÄsid£¬È¥³ıÆäÖĞµÄid£¬ÇëÇóomdb»ñµÃĞÅÏ¢update
 
-#omdbæ— æ³•è¦†ç›–çš„ä¿¡æ¯ï¼Œsub genreè®°å…¥otherï¼Œåå­—ä¿ç•™vidsrcçš„åå­—
+#omdbÎŞ·¨¸²¸ÇµÄĞÅÏ¢£¬sub genre¼ÇÈëother£¬Ãû×Ö±£ÁôvidsrcµÄÃû×Ö
 
-#æ—§çš„sidè¿›è¡Œsqlè¯­å¥åˆå¹¶uodateåˆ°ä¸»è¡¨
+#¾ÉµÄsid½øĞĞsqlÓï¾äºÏ²¢uodateµ½Ö÷±í
